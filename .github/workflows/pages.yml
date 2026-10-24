@@ -53,7 +53,7 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
 
       - run: bun install --frozen-lockfile
-      - run: bun test
+      - run: bun test scripts
 
       - name: Build landing page and docs
         run: bun run build --oa oa

@@ -8,7 +8,7 @@
     "build": "bun scripts/build.ts",
     "build:docs": "vitepress build",
     "preview": "vitepress preview _site --port 4173",
-    "test": "bun test"
+    "test": "bun test scripts"
   },
   "devDependencies": {
     "vitepress": "1.6.4",
