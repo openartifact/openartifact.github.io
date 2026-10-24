@@ -58,6 +58,9 @@ export default defineConfig({
     config: (md) => repoLinks(md),
   },
   vite: {
+    // The shared installCommands.ts sits in a checkout whose web/tsconfig.json extends
+    // packages that are not installed here; a string tsconfigRaw skips the lookup.
+    esbuild: { tsconfigRaw: '{}' },
     resolve: {
       // The docs render the same client snippets as the web UI.
       alias: [
