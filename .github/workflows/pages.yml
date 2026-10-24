@@ -9,8 +9,10 @@ name: Pages
 
 on:
   push:
-    branches: [main]
-  # Poll: a run rebuilds only when docs/ of openartifact/openartifact changed or a
+    # `rebuild` receives a trigger commit (force-pushed with a deploy key) from
+    # openartifact/openartifact's docs-site-trigger.yml on docs changes and tags.
+    branches: [main, rebuild]
+  # Fallback poll: a run rebuilds only when docs/ of openartifact/openartifact changed or a
   # release tag appeared (see the check job); no secret is needed for that.
   schedule:
     - cron: "*/15 * * * *"

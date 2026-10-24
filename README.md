@@ -42,8 +42,9 @@ The docs pages are rendered in place from `docs/`; pages missing in an older rel
 `.github/workflows/pages.yml` builds and publishes with GitHub Pages (Settings, Pages, source: GitHub Actions) on:
 
 - push to `main` of this repository,
+- push to the `rebuild` branch: openartifact/openartifact's `docs-site-trigger.yml` force-pushes one trigger commit there (a copy of `main` plus `rebuild.txt` naming the source commit) when `docs/` or `web/src/lib/installCommands.ts` changes on its `main` or a `v*.*.*` tag is pushed. This uses a write deploy key (title `openartifact-docs-trigger`, on this repository) whose private half is the secret `SITE_DEPLOY_KEY` there; the `github-pages` environment allows the `rebuild` branch,
 - manual dispatch,
-- a poll every 15 minutes: the `check` job compares `scripts/fingerprint.sh` (the last commit of openartifact/openartifact touching `docs/` or `web/src/lib/installCommands.ts`, plus the release tags) with `source.txt` of the deployed site and rebuilds only when they differ. No secret is involved. A change on main shows up within about 15 minutes (scheduled runs can lag under load). GitHub disables scheduled workflows of a repository without commits for 60 days; re-enable it in the Actions tab or push a commit.
+- a fallback poll every 15 minutes, which covers a missing or revoked key and failed triggers: the `check` job compares `scripts/fingerprint.sh` (the last commit of openartifact/openartifact touching `docs/` or `web/src/lib/installCommands.ts`, plus the release tags) with `source.txt` of the deployed site and rebuilds only when they differ. The poll needs no secret. GitHub disables scheduled workflows of a repository without commits for 60 days; re-enable it in the Actions tab or push a commit.
 
 ## Brand
 
