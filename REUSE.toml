@@ -1,0 +1,18 @@
+version = 1
+SPDX-PackageName = "OpenArtifact website"
+SPDX-PackageSupplier = "The OpenArtifact Authors"
+SPDX-PackageDownloadLocation = "https://github.com/openartifact/openartifact.github.io"
+
+# Logos copied unmodified from https://github.com/openartifact/brand.
+[[annotations]]
+path = "brand/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "The OpenArtifact Authors"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+# Lockfile and package manifest cannot carry comment headers.
+[[annotations]]
+path = ["bun.lock", "package.json"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "The OpenArtifact Authors"
+SPDX-License-Identifier = "AGPL-3.0-or-later"

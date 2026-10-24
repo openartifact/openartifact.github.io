@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: The OpenArtifact Authors
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Builds https://openartifact.github.io/: the landing page, the docs of
+# openartifact/openartifact main (/latest/) and of the newest stable tag of each
+# of the last 5 minor lines (/vX.Y/), then publishes them to GitHub Pages.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 5 * * *" # daily: picks up docs changes when no dispatch arrives
+  workflow_dispatch:
+  # Sent by openartifact/openartifact on pushes to main and release tags
+  # (needs the SITE_DISPATCH_TOKEN secret there; the schedule covers its absence).
+  repository_dispatch:
+    types: [docs-updated]
+
+permissions:
+  contents: read
+
+# One deployment at a time; a queued run is never cancelled mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  BUN_VERSION: "1.4.4"
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check out openartifact/openartifact (docs source, all tags)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: openartifact/openartifact
+          path: oa
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - run: bun install --frozen-lockfile
+      - run: bun test
+
+      - name: Build landing page and docs
+        run: bun run build --oa oa
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write # publish the artifact
+      id-token: write # prove the deployment comes from this workflow
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
