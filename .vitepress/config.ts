@@ -81,7 +81,8 @@ export default defineConfig({
     nav,
     sidebar: isLanding ? undefined : buildSidebar(docsDir),
     socialLinks: [{ icon: 'github', link: github }],
-    search: { provider: 'local' },
+    // The landing page has nothing to index; its search (LandingSearch.vue) hands queries to the latest docs.
+    search: isLanding ? undefined : { provider: 'local' },
     editLink: isLanding
       ? undefined
       : {
