@@ -13,6 +13,8 @@ const origin = process.env.OA_SITE_ORIGIN ?? siteOrigin
 const siteRoot = `${origin}${env.siteBase}`
 const github = `https://github.com/${repoSlug}`
 const outDir = env.outDir ?? (isLanding ? '_site' : `_site/${env.version}`)
+// Copied from openartifact/brand social/; served from the landing build's root.
+const socialImage = `${siteRoot}brand/openartifact-social-dark.png`
 
 const nav: DefaultTheme.NavItem[] = isLanding
   ? [
@@ -53,6 +55,16 @@ export default defineConfig({
     ['link', { rel: 'icon', type: 'image/png', sizes: '32x32', href: `${base}brand/openartifact-mark-color-32.png` }],
     // Only the latest docs are indexed; release docs are reached through the switcher.
     ...(isLanding || env.version === 'latest' ? [] : [robotsNoindex]),
+    // Link previews (Slack, LinkedIn, X, ...): the repository's GitHub social preview
+    // only covers github.com links, the site needs its own tags. Absolute URLs required.
+    ['meta', { property: 'og:site_name', content: 'OpenArtifact' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:image', content: socialImage }],
+    ['meta', { property: 'og:image:width', content: '1280' }],
+    ['meta', { property: 'og:image:height', content: '640' }],
+    ['meta', { property: 'og:image:alt', content: 'OpenArtifact' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:image', content: socialImage }],
   ],
   markdown: {
     config: (md) => repoLinks(md),
@@ -97,6 +109,17 @@ export default defineConfig({
     // Read by the theme components.
     // @ts-expect-error custom theme keys
     oa: { siteRoot: env.siteBase, version: isLanding ? '' : env.version, ref: env.ref },
+  },
+  transformHead({ pageData, title, description }) {
+    const path = pageData.relativePath.replace(/(^|\/)(index|README)\.md$/, '$1').replace(/\.md$/, '')
+    const url = `${origin}${base}${path}`
+    return [
+      ['meta', { property: 'og:title', content: title }],
+      ['meta', { property: 'og:description', content: description }],
+      ['meta', { property: 'og:url', content: url }],
+      ['meta', { name: 'twitter:title', content: title }],
+      ['meta', { name: 'twitter:description', content: description }],
+    ] satisfies HeadConfig[]
   },
   buildEnd(cfg) {
     // Logos come from the brand repo (copied into brand/); neither they nor the
