@@ -10,13 +10,11 @@ name: Pages
 on:
   push:
     branches: [main]
+  # Poll: a run rebuilds only when docs/ of openartifact/openartifact changed or a
+  # release tag appeared (see the check job); no secret is needed for that.
   schedule:
-    - cron: "23 5 * * *" # daily: picks up docs changes when no dispatch arrives
+    - cron: "*/15 * * * *"
   workflow_dispatch:
-  # Sent by openartifact/openartifact on pushes to main and release tags
-  # (needs the SITE_DISPATCH_TOKEN secret there; the schedule covers its absence).
-  repository_dispatch:
-    types: [docs-updated]
 
 permissions:
   contents: read
@@ -30,8 +28,40 @@ env:
   BUN_VERSION: "1.4.4"
 
 jobs:
+  check:
+    name: check for changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          # Pushes and manual runs always rebuild; only the poll compares.
+          if [ "$EVENT" != "schedule" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          wanted=$(scripts/fingerprint.sh)
+          deployed=$(curl -fsS "https://openartifact.github.io/source.txt" || true)
+          echo "wanted=$wanted deployed=$deployed"
+          if [ "$wanted" = "$deployed" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: build
+    needs: check
+    if: needs.check.outputs.changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -57,6 +87,11 @@ jobs:
 
       - name: Build landing page and docs
         run: bun run build --oa oa
+
+      - name: Record what the site was built from
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/fingerprint.sh > _site/source.txt
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

@@ -42,9 +42,8 @@ The docs pages are rendered in place from `docs/`; pages missing in an older rel
 `.github/workflows/pages.yml` builds and publishes with GitHub Pages (Settings, Pages, source: GitHub Actions) on:
 
 - push to `main` of this repository,
-- a daily schedule,
 - manual dispatch,
-- `repository_dispatch` (`docs-updated`), sent by openartifact/openartifact on pushes to `main` and on release tags. That needs the secret `SITE_DISPATCH_TOKEN` in openartifact/openartifact: a fine-grained token limited to this repository with `Actions: write` and `Contents: read`. Without it the dispatch step is skipped and the daily schedule picks changes up.
+- a poll every 15 minutes: the `check` job compares `scripts/fingerprint.sh` (the last commit of openartifact/openartifact touching `docs/` or `web/src/lib/installCommands.ts`, plus the release tags) with `source.txt` of the deployed site and rebuilds only when they differ. No secret is involved. A change on main shows up within about 15 minutes (scheduled runs can lag under load). GitHub disables scheduled workflows of a repository without commits for 60 days; re-enable it in the Actions tab or push a commit.
 
 ## Brand
 
