@@ -33,7 +33,7 @@ const robotsNoindex: HeadConfig = ['meta', { name: 'robots', content: 'noindex' 
 
 export default defineConfig({
   title: 'OpenArtifact',
-  description: 'Self-hosted artifact repository for 16 package formats.',
+  description: 'Self-hosted artifact repository for many package formats.',
   lang: 'en-US',
   base,
   srcDir: isLanding ? 'landing' : docsDir,

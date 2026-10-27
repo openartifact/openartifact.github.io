@@ -8,7 +8,7 @@ titleTemplate: Self-hosted artifact repository
 
 hero:
   name: OpenArtifact
-  text: Self-hosted artifact repository for 16 package formats
+  text: Self-hosted artifact repository for many package formats
   tagline: One Go binary, embedded web UI, PostgreSQL. Hosted, proxy and group repositories with RBAC, SSO and security scanning.
   image:
     light: /brand/openartifact-mark-color.svg
@@ -26,7 +26,7 @@ hero:
       link: https://github.com/openartifact/openartifact
 
 features:
-  - title: 16 native formats
+  - title: Native package formats
     details: npm, PyPI, Maven, Docker/OCI, Helm, Debian, RPM, Go, Cargo, NuGet, RubyGems, Conda, Conan, Ivy, sbt and raw files, each on the URL its client expects.
   - title: Hosted, proxy and group
     details: Mirror upstreams with serve-stale, merge repositories behind one URL, and replicate hosted repositories between sites.
