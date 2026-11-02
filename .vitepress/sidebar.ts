@@ -46,6 +46,7 @@ const groups: { text: string; dir: string; open?: boolean; items: Entry[] }[] = 
       ['Docker / OCI', 'formats/docker'],
       ['Go', 'formats/go'],
       ['Helm', 'formats/helm'],
+      ['Hugging Face', 'formats/huggingface'],
       ['Ivy and sbt', 'formats/ivy-sbt'],
       ['Maven', 'formats/maven'],
       ['Nix', 'formats/nix'],
