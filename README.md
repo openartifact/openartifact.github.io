@@ -51,10 +51,17 @@ The docs pages are rendered in place from `docs/`; pages missing in an older rel
 
 `.vitepress/sidebar.ts` holds the order and the labels. A docs page that is not listed there is still shown, at the end of the group of its directory, so no page is unreachable. CI runs `scripts/sidebar.test.ts` with `OA_STRICT_SIDEBAR=1` against `main` of openartifact/openartifact and fails until the page has an entry: add it, with a label, to the matching group.
 
+### Links between apps
+
+The landing page and every docs version are separate VitePress apps on one origin, and VitePress' client router turns every same-origin link into a lookup in the *current* app, which renders its 404 page for a page that another app serves. A link that carries a `target` attribute is left to the browser, so every link into another app (`/latest/...` from the landing page, `/` or `/latest/` from `/dev/`, the version banner, the 404 page) gets `target="_self"` and does a full page load.
+
+`.vitepress/apps.ts` is the one place that decides this: the config applies it to the nav and to the hero actions and features of a page's frontmatter, theme components build their anchors with `appLink()`. Do not add `target` by hand; add a link the same way as the existing ones. The link check below fails when a built page links into another app without it.
+
 ### Link check
 
 `scripts/check-links.ts` reads the built HTML of every version and checks that each internal link, image, stylesheet and script exists and that each `#anchor` is the id of an element on its page. VitePress only checks that the linked page exists in the source, so this catches README targets and anchors that differ between GitHub and the site.
 
+- It also fails on a link from one app to another without `target="_self"` (see above); `scripts/apps.test.ts` builds the landing page and two docs apps to test the same.
 - CI (`ci.yml`) fails on a broken reference in any version except `dev`, which only warns: its docs are fixed in openartifact/openartifact.
 - The Pages workflow reports broken references as warnings and still publishes.
 - `scripts/known-broken-links.txt` lists broken anchors in released docs that cannot be edited any more. Remove a line when the version that has it is no longer published.

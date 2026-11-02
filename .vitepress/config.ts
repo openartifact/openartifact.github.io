@@ -5,6 +5,7 @@
 import { cpSync, existsSync, mkdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { defineConfig, type DefaultTheme, type HeadConfig } from 'vitepress'
+import { frontmatterTargets, navTargets } from './apps'
 import { describePages } from './description'
 import { base, docsDir, env, isLanding, kind, repoSlug, siteOrigin } from './env'
 import { listFormats } from './formats'
@@ -21,10 +22,15 @@ const outDir = env.outDir ?? (isLanding ? '_site' : `_site/${env.version}`)
 // Copied from openartifact/brand social/; served from the landing build's root.
 const socialImage = `${siteRoot}brand/openartifact-social-dark.png`
 
+const scope = { siteRoot: env.siteBase, version: isLanding ? '' : env.version, origin }
+
+// The theme puts the app's base in front of a path, so these are paths below this app's
+// base; the way out of a docs app is an absolute URL of the site. apps.ts adds target="_self"
+// to those that leave the app.
 const nav: DefaultTheme.NavItem[] = isLanding
   ? [
-      { text: 'Documentation', link: `${siteRoot}latest/`, noIcon: true },
-      { text: 'Development docs', link: `${siteRoot}dev/`, noIcon: true },
+      { text: 'Documentation', link: '/latest/', noIcon: true },
+      { text: 'Development docs', link: '/dev/', noIcon: true },
       { text: 'Releases', link: `${github}/releases` },
     ]
   : [
@@ -111,7 +117,7 @@ export default defineConfig({
       alt: 'OpenArtifact',
     },
     siteTitle: false,
-    nav,
+    nav: navTargets(scope, nav),
     sidebar: isLanding ? undefined : buildSidebar(docsDir),
     socialLinks: [{ icon: 'github', link: github }],
     // The landing page has nothing to index; its search (LandingSearch.vue) hands queries to the latest docs.
@@ -139,6 +145,10 @@ export default defineConfig({
       // The landing page lists the formats of the docs it links to.
       formats: isLanding ? listFormats(docsDir) : [],
     },
+  },
+  // Links into another app of the site must not go through this app's router (apps.ts).
+  transformPageData(pageData) {
+    frontmatterTargets(scope, pageData.frontmatter)
   },
   transformHead({ pageData, title, description }) {
     const path = pageData.relativePath.replace(/(^|\/)(index|README)\.md$/, '$1').replace(/\.md$/, '')
