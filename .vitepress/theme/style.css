@@ -80,3 +80,34 @@
     height: 256px;
   }
 }
+
+/* Landing sections below the hero line up with the hero and the feature cards. */
+.oa-section {
+  padding: 16px 24px;
+}
+
+.oa-section > .oa-inner {
+  max-width: 1152px;
+  margin: 0 auto;
+}
+
+.oa-section h2 {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+@media (min-width: 640px) {
+  .oa-section {
+    padding: 16px 48px;
+  }
+}
+
+@media (min-width: 960px) {
+  .oa-section {
+    padding: 16px 64px;
+  }
+}

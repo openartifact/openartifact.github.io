@@ -9,7 +9,7 @@ titleTemplate: Self-hosted artifact repository
 hero:
   name: OpenArtifact
   text: Self-hosted artifact repository for many package formats
-  tagline: One Go binary, embedded web UI, PostgreSQL. Hosted, proxy and group repositories with RBAC, SSO and security scanning.
+  tagline: Run one Go binary with PostgreSQL and serve every package format your teams use, with access control, SSO and security scanning built in.
   image:
     light: /brand/openartifact-mark-color.svg
     dark: /brand/openartifact-mark-color-dark.svg
@@ -17,25 +17,27 @@ hero:
   actions:
     - theme: brand
       text: Get started
-      link: https://openartifact.github.io/latest/getting-started/installation
+      link: /latest/getting-started/installation
+      target: _self
     - theme: alt
       text: Documentation
-      link: https://openartifact.github.io/latest/
+      link: /latest/
+      target: _self
     - theme: alt
       text: GitHub
       link: https://github.com/openartifact/openartifact
 
 features:
   - title: Native package formats
-    details: npm, PyPI, Maven, Docker/OCI, Helm, Debian, RPM, Go, Cargo, NuGet, RubyGems, Conda, Conan, Ivy, sbt and raw files, each on the URL its client expects.
+    details: Publish and install with the tools you already use. Every format is served on the URL its client expects, listed below.
   - title: Hosted, proxy and group
-    details: Mirror upstreams with serve-stale, merge repositories behind one URL, and replicate hosted repositories between sites.
+    details: Host your own packages, mirror upstream registries and keep serving cached copies when they are down, merge repositories behind one URL, and replicate between sites.
   - title: Access control
-    details: Users, groups, permission targets and API tokens, SSO through OIDC and SAML, and projects that own repositories.
+    details: Give users, groups and projects the access they need with permission targets and API tokens. Sign in with OIDC or SAML.
   - title: Supply chain security
-    details: CycloneDX and SPDX SBOMs, vulnerability, secret and license scanning, quarantine, Dependency-Track, signed and attested releases.
+    details: Scan every upload for vulnerabilities, secrets and licenses, block flagged artifacts with quarantine, and export CycloneDX or SPDX SBOMs, signed attestations and Dependency-Track pushes.
   - title: Operable
-    details: Filesystem, S3, GCS, Azure or OCI blob storage with tiering and replication, backups, point-in-time recovery, Prometheus metrics, webhooks and an audit log.
+    details: Store blobs on a filesystem, S3, GCS, Azure or an OCI registry, move cold data between tiers, and recover from backups or to a point in time. Prometheus metrics, webhooks and an audit log are included.
   - title: Free software
-    details: AGPL-3.0-or-later, REUSE compliant. REST API with an OpenAPI spec, an oa CLI with Nexus and Artifactory import, and an optional MCP server.
+    details: AGPL-3.0-or-later and REUSE compliant. Automate with the REST API, the oa CLI (with Nexus and Artifactory import) and an optional MCP server.
 ---

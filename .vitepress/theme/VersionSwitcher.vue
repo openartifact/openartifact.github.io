@@ -7,15 +7,11 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useData } from 'vitepress'
-
-interface Version {
-  name: string
-  label: string
-}
+import { samePage, type OaTheme, type VersionEntry } from './oa'
 
 const { theme } = useData()
-const oa = computed(() => theme.value.oa as { siteRoot: string; version: string })
-const versions = ref<Version[]>([])
+const oa = computed(() => theme.value.oa as OaTheme)
+const versions = ref<VersionEntry[]>([])
 
 // The list is fetched at run time so every published version, including the
 // oldest, offers the releases that came after it.
@@ -23,29 +19,20 @@ onMounted(async () => {
   if (!oa.value.version) return
   try {
     const res = await fetch(`${oa.value.siteRoot}versions.json`, { cache: 'no-cache' })
-    if (res.ok) versions.value = (await res.json()) as Version[]
+    if (res.ok) versions.value = (await res.json()) as VersionEntry[]
   } catch {
     // Offline or local preview: keep the current version only.
   }
 })
 
-const options = computed<Version[]>(() => {
+const options = computed<VersionEntry[]>(() => {
   const current = oa.value.version
   if (versions.value.some((v) => v.name === current)) return versions.value
   return [{ name: current, label: current }, ...versions.value]
 })
 
 async function go(e: Event) {
-  const target = (e.target as HTMLSelectElement).value
-  const { siteRoot, version } = oa.value
-  const here = `${siteRoot}${version}/`
-  const rest = window.location.pathname.startsWith(here) ? window.location.pathname.slice(here.length) : ''
-  const same = `${siteRoot}${target}/${rest}${window.location.hash}`
-  // Land on the same page when the other version has it, on its index otherwise.
-  const ok = await fetch(`${siteRoot}${target}/${rest}`, { method: 'HEAD' })
-    .then((r) => r.ok)
-    .catch(() => false)
-  window.location.assign(ok ? same : `${siteRoot}${target}/`)
+  window.location.assign(await samePage(oa.value, (e.target as HTMLSelectElement).value))
 }
 </script>
 
@@ -74,6 +61,19 @@ select {
   color: var(--vp-c-text-1);
   font-size: 13px;
   font-weight: 500;
+  max-width: 11em;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 767px) {
+  .version-switcher {
+    margin-left: 4px;
+  }
+
+  select {
+    max-width: 10.5em;
+    padding: 4px 4px;
+  }
 }
 
 select:focus-visible {

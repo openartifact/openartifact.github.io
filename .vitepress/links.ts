@@ -10,6 +10,16 @@ import { docsDir, env, repoSlug } from './env'
 const SCHEME = /^[a-z][a-z0-9+.-]*:/i
 
 /**
+ * README.md is a directory index (`index.md` through `rewrites`), but VitePress
+ * does not apply `rewrites` to link targets: `formats/README.md` would become
+ * `formats/README`, which does not exist. Point at the directory instead.
+ */
+export function readmeToIndex(path: string): string {
+  if (path !== 'README.md' && !path.endsWith('/README.md')) return path
+  return path.slice(0, -'README.md'.length) || './'
+}
+
+/**
  * Markdown in docs/ links to files outside docs/ (../README.md,
  * ../../internal/...): fine on GitHub, dead on the site. Rewrite those links to
  * the GitHub file or directory at the ref this version was built from, and fail
@@ -31,7 +41,11 @@ export function repoLinks(md: MarkdownIt): void {
         const target = posix.normalize(posix.join(docsRel, posix.dirname(page), path))
         if (target === '..' || target.startsWith('../')) throw new Error(`${page}: link ${href} leaves the repository`)
         // Pages and assets inside docs/ are resolved by VitePress itself.
-        if (target.startsWith(`${docsRel}/`)) continue
+        if (target.startsWith(`${docsRel}/`)) {
+          const fixed = readmeToIndex(path)
+          if (fixed !== path) tok.attrSet('href', hash ? `${fixed}#${hash}` : fixed)
+          continue
+        }
 
         const abs = resolve(env.srcDir, target)
         if (!existsSync(abs)) {

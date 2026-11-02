@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# Builds https://openartifact.github.io/: the landing page, the docs of
-# openartifact/openartifact main (/latest/) and of the newest stable tag of each
-# of the last 5 minor lines (/vX.Y/), then publishes them to GitHub Pages.
+# Builds https://openartifact.github.io/: the landing page, the docs of the newest
+# release of openartifact/openartifact (/latest/), of main (/dev/, unreleased) and of
+# the newest stable tag of each older minor line among the last 5 (/vX.Y/), then
+# publishes them to GitHub Pages. A broken /dev/ or older version is reported and left
+# out; it never keeps the rest from being published.
 name: Pages
 
 on:
@@ -52,7 +54,9 @@ jobs:
             exit 0
           fi
           wanted=$(scripts/fingerprint.sh)
-          deployed=$(curl -fsS "https://openartifact.github.io/source.txt" || true)
+          # Pages caches files for 10 minutes: ask for a fresh copy so a deploy that just
+          # finished is not mistaken for an old one.
+          deployed=$(curl -fsS -H 'Cache-Control: no-cache' "https://openartifact.github.io/source.txt?t=$(date +%s)" || true)
           echo "wanted=$wanted deployed=$deployed"
           if [ "$wanted" = "$deployed" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -84,16 +88,26 @@ jobs:
         with:
           bun-version: ${{ env.BUN_VERSION }}
 
+      # Taken from the checkout before the build, so a docs commit that lands while
+      # the build runs is not recorded as published: the next poll sees it and rebuilds.
+      - name: Fingerprint the docs source
+        run: scripts/fingerprint.sh oa > "$RUNNER_TEMP/source.txt"
+
       - run: bun install --frozen-lockfile
       - run: bun test scripts
+        env:
+          OA_SRC_DIR: oa
 
       - name: Build landing page and docs
         run: bun run build --oa oa
 
+      # Reports broken links and anchors as warnings; a PR to this repository
+      # (ci.yml) is where they fail.
+      - name: Check links and anchors
+        run: bun scripts/check-links.ts _site --known scripts/known-broken-links.txt --warn '*'
+
       - name: Record what the site was built from
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: scripts/fingerprint.sh > _site/source.txt
+        run: cp "$RUNNER_TEMP/source.txt" _site/source.txt
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
