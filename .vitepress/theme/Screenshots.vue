@@ -15,10 +15,13 @@ const shots = [
 </script>
 
 <template>
-  <section class="shots" aria-label="Screenshots">
-    <figure v-for="s in shots" :key="s.file">
-      <img :src="withBase(`/screenshots/${s.file}`)" :alt="s.alt" loading="lazy" />
-    </figure>
+  <section class="oa-section" aria-labelledby="shots-title">
+    <div class="oa-inner shots">
+      <h2 id="shots-title">A look at the web UI</h2>
+      <figure v-for="s in shots" :key="s.file">
+        <img :src="withBase(`/screenshots/${s.file}`)" :alt="s.alt" loading="lazy" />
+      </figure>
+    </div>
   </section>
 </template>
 
@@ -26,9 +29,6 @@ const shots = [
 .shots {
   display: grid;
   gap: 24px;
-  max-width: 1152px;
-  margin: 0 auto;
-  padding: 24px;
 }
 
 figure {
@@ -39,11 +39,5 @@ img {
   width: 100%;
   border: 1px solid var(--vp-c-divider);
   border-radius: 8px;
-}
-
-@media (min-width: 960px) {
-  .shots {
-    padding: 32px 64px;
-  }
 }
 </style>

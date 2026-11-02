@@ -3,49 +3,63 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, posix } from 'node:path'
 import type { DefaultTheme } from 'vitepress'
 
 type Entry = [text: string, page: string]
 
-// Diátaxis-shaped navigation over the docs tree. Pages are listed by their
-// path under docs/ (README.md is the directory index); a page that does not
-// exist in the checked-out version is skipped, so old releases build with the
-// same sidebar.
-const groups: { text: string; items: Entry[] }[] = [
+// Navigation over the docs tree: the order and the labels. Pages are listed by
+// their path under docs/ (README.md is the directory index). A page that does
+// not exist in the checked-out version is skipped, so old releases build with
+// the same sidebar. A page that exists but is not listed here is appended to the
+// group of its directory (see `unlistedPages`), so no page is ever unreachable;
+// scripts/sidebar.test.ts makes CI ask for a proper place and label.
+const groups: { text: string; dir: string; open?: boolean; items: Entry[] }[] = [
   {
     text: 'Getting started',
+    dir: 'getting-started',
+    open: true,
     items: [
       ['Overview', 'README'],
       ['Installation', 'getting-started/installation'],
       ['Configuration', 'getting-started/configuration'],
+      ['Web UI', 'getting-started/web-ui'],
+      ['Language', 'getting-started/language'],
       ['Upgrading', 'getting-started/upgrading'],
     ],
   },
   {
     text: 'Formats',
+    dir: 'formats',
     items: [
       ['Format matrix', 'formats/README'],
       ['Client setup', 'formats/client-setup'],
-      ['Maven', 'formats/maven'],
-      ['npm', 'formats/npm'],
-      ['PyPI', 'formats/pypi'],
-      ['Docker / OCI', 'formats/docker'],
-      ['Helm', 'formats/helm'],
-      ['Debian', 'formats/debian'],
-      ['RPM', 'formats/rpm'],
-      ['Go', 'formats/go'],
+      ['Alpine (apk)', 'formats/apk'],
+      ['Ansible', 'formats/ansible'],
+      ['Arch Linux (pacman)', 'formats/pacman'],
       ['Cargo', 'formats/cargo'],
-      ['NuGet', 'formats/nuget'],
-      ['RubyGems', 'formats/rubygems'],
-      ['Conda', 'formats/conda'],
+      ['Composer', 'formats/composer'],
       ['Conan', 'formats/conan'],
+      ['Conda', 'formats/conda'],
+      ['Debian', 'formats/debian'],
+      ['Docker / OCI', 'formats/docker'],
+      ['Go', 'formats/go'],
+      ['Helm', 'formats/helm'],
       ['Ivy and sbt', 'formats/ivy-sbt'],
+      ['Maven', 'formats/maven'],
+      ['Nix', 'formats/nix'],
+      ['npm', 'formats/npm'],
+      ['NuGet', 'formats/nuget'],
+      ['PyPI', 'formats/pypi'],
       ['Raw', 'formats/raw'],
+      ['RPM', 'formats/rpm'],
+      ['RubyGems', 'formats/rubygems'],
+      ['Terraform / OpenTofu', 'formats/terraform'],
     ],
   },
   {
     text: 'Repositories',
+    dir: 'repositories',
     items: [
       ['Hosted, proxy and group', 'repositories/hosted-proxy-group'],
       ['Cleanup and quotas', 'repositories/cleanup-and-quotas'],
@@ -56,12 +70,15 @@ const groups: { text: string; items: Entry[] }[] = [
   },
   {
     text: 'Security',
+    dir: 'security',
     items: [
       ['Authentication', 'security/authentication'],
       ['Single sign-on', 'security/sso'],
       ['RBAC', 'security/rbac'],
       ['Projects', 'security/projects'],
       ['Scanning', 'security/scanning'],
+      ['Security findings', 'security/findings'],
+      ['KEV and EPSS signals', 'security/exploit-signals'],
       ['SBOM and VEX', 'security/sbom'],
       ['Dependency-Track', 'security/dependency-track'],
       ['License metadata', 'security/licenses'],
@@ -71,10 +88,12 @@ const groups: { text: string; items: Entry[] }[] = [
   },
   {
     text: 'Operations',
+    dir: 'operations',
     items: [
       ['Storage', 'operations/storage'],
       ['Storage tiers', 'operations/storage-tiering'],
       ['Blob replication', 'operations/replication'],
+      ['Scaling and roles', 'operations/scaling'],
       ['Backup', 'operations/backup'],
       ['Federation', 'operations/federation'],
       ['Disaster recovery', 'operations/disaster-recovery'],
@@ -82,13 +101,17 @@ const groups: { text: string; items: Entry[] }[] = [
       ['Rebuild from storage', 'operations/rebuild-from-storage'],
       ['Monitoring', 'operations/monitoring'],
       ['Webhooks', 'operations/webhooks'],
+      ['Audit log retention', 'operations/audit-retention'],
+      ['Branding', 'operations/branding'],
       ['Performance', 'operations/performance'],
     ],
   },
   {
     text: 'Integrations',
+    dir: 'integrations',
     items: [
       ['CLI', 'integrations/cli'],
+      ['CI integration', 'integrations/ci'],
       ['Declarative configuration', 'integrations/declarative'],
       ['MCP server', 'integrations/mcp'],
       ['REST API', 'integrations/api'],
@@ -98,6 +121,7 @@ const groups: { text: string; items: Entry[] }[] = [
   },
   {
     text: 'Reference',
+    dir: 'reference',
     items: [
       ['Overview', 'reference/README'],
       ['Configuration keys', 'reference/config'],
@@ -106,13 +130,30 @@ const groups: { text: string; items: Entry[] }[] = [
       ['REST API', 'reference/api/README'],
     ],
   },
-  { text: 'Design', items: [['Federated repositories', 'design/federation']] },
-  { text: 'Migration', items: [['From Nexus / Artifactory', 'migration/nexus-artifactory']] },
+  {
+    text: 'Design',
+    dir: 'design',
+    items: [
+      ['Federated repositories', 'design/federation'],
+      ['Format plugins', 'design/format-plugins'],
+    ],
+  },
+  {
+    text: 'Migration',
+    dir: 'migration',
+    items: [
+      ['From Nexus / Artifactory', 'migration/nexus-artifactory'],
+      ['From an older OpenArtifact', 'migration/openartifact'],
+    ],
+  },
   {
     text: 'Development',
+    dir: 'development',
     items: [
       ['Development guide', 'development/README'],
       ['Architecture', 'development/architecture'],
+      ['Testing', 'development/testing'],
+      ['Translations', 'development/translations'],
     ],
   },
 ]
@@ -143,14 +184,40 @@ function apiPages(docsDir: string): DefaultTheme.SidebarItem[] {
     })
 }
 
+/** Every docs page as its path under docs/ without `.md`, except the generated REST API pages. */
+export function docsPages(docsDir: string): string[] {
+  const out: string[] = []
+  const walk = (rel: string): void => {
+    for (const e of readdirSync(join(docsDir, rel), { withFileTypes: true })) {
+      const path = posix.join(rel, e.name)
+      if (e.isDirectory()) {
+        if (path !== 'reference/api' && path !== 'assets') walk(path)
+      } else if (e.name.endsWith('.md')) out.push(path.slice(0, -'.md'.length))
+    }
+  }
+  walk('')
+  return out.sort()
+}
+
+/** Pages that exist in the checkout but have no entry in `groups`. */
+export function unlistedPages(docsDir: string): string[] {
+  const listed = new Set(groups.flatMap((g) => g.items.map(([, page]) => page)))
+  return docsPages(docsDir).filter((p) => !listed.has(p))
+}
+
+/** Group an unlisted page falls into: the group of its directory, a new one for a new directory. */
+function groupOf(page: string): { text: string; dir: string } {
+  const dir = page.includes('/') ? page.slice(0, page.indexOf('/')) : 'getting-started'
+  return groups.find((g) => g.dir === dir) ?? { text: dir.charAt(0).toUpperCase() + dir.slice(1).replace(/-/g, ' '), dir }
+}
+
 export function buildSidebar(docsDir: string): DefaultTheme.Sidebar {
-  const sidebar: DefaultTheme.SidebarItem[] = []
+  const sections = new Map<string, { open: boolean; items: DefaultTheme.SidebarItem[] }>()
 
   for (const g of groups) {
     const items: DefaultTheme.SidebarItem[] = g.items
       .filter(([, page]) => existsSync(join(docsDir, `${page}.md`)))
       .map(([text, page]) => ({ text, link: pageLink(page) }))
-    if (items.length === 0) continue
 
     if (g.text === 'Reference') {
       const api = apiPages(docsDir)
@@ -159,9 +226,18 @@ export function buildSidebar(docsDir: string): DefaultTheme.Sidebar {
         items[idx] = { text: 'REST API', link: '/reference/api/', collapsed: true, items: api }
       }
     }
-
-    sidebar.push({ text: g.text, collapsed: true, items })
+    sections.set(g.text, { open: g.open ?? false, items })
   }
 
-  return sidebar
+  // Pages nobody has placed yet still show up, under the group of their directory.
+  for (const page of unlistedPages(docsDir)) {
+    const g = groupOf(page)
+    const section = sections.get(g.text) ?? { open: false, items: [] }
+    section.items.push({ text: title(join(docsDir, `${page}.md`), page), link: pageLink(page) })
+    sections.set(g.text, section)
+  }
+
+  return [...sections]
+    .filter(([, s]) => s.items.length > 0)
+    .map(([text, s]) => ({ text, collapsed: !s.open, items: s.items }))
 }

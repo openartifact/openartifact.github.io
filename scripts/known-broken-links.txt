@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: The OpenArtifact Authors
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Anchors that the published release docs link to but do not have. A release
+# cannot be edited any more, so these stay broken until the version is no longer
+# published. The docs of main have the same typos until they are fixed there.
+#
+# One target per line: last path segment of the linked page, then the anchor.
+# Delete a line when the next release no longer needs it; new breakage fails CI.
+upgrading#050-unreleased
+hosted-proxy-group#deb-and-rpm-groups

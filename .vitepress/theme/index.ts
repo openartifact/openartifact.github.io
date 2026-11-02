@@ -5,9 +5,13 @@
 import DefaultTheme from 'vitepress/theme'
 import { h } from 'vue'
 import ClientSnippets from './ClientSnippets.vue'
+import Formats from './Formats.vue'
 import LandingSearch from './LandingSearch.vue'
+import NotFound from './NotFound.vue'
+import Quickstart from './Quickstart.vue'
 import SearchHandoff from './SearchHandoff.vue'
 import Screenshots from './Screenshots.vue'
+import VersionBanner from './VersionBanner.vue'
 import VersionSwitcher from './VersionSwitcher.vue'
 import './style.css'
 
@@ -17,7 +21,10 @@ export default {
     h(DefaultTheme.Layout, null, {
       'nav-bar-content-before': () => h(LandingSearch),
       'nav-bar-content-after': () => [h(SearchHandoff), h(VersionSwitcher)],
-      'home-features-after': () => h(Screenshots),
+      'home-hero-after': () => h(Quickstart),
+      'home-features-after': () => [h(Formats), h(Screenshots)],
+      'doc-before': () => h(VersionBanner),
+      'not-found': () => h(NotFound),
     }),
   enhanceApp({ app }) {
     app.component('ClientSnippets', ClientSnippets)

@@ -45,9 +45,17 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
 
       - run: bun install --frozen-lockfile
-      - run: bun test scripts
-      - name: Build (landing, latest and release docs; dead links fail the build)
+      - name: Test (every page of the docs must have a sidebar entry)
+        run: bun test scripts
+        env:
+          OA_SRC_DIR: oa
+          OA_STRICT_SIDEBAR: "1"
+      - name: Build (landing, latest, dev and older docs; a failing dev or older build is reported)
         run: bun run build --oa oa
+      # Every version, every page: a link to a missing page or anchor fails the job.
+      # dev only warns: its docs are fixed in openartifact/openartifact.
+      - name: Check links and anchors
+        run: bun scripts/check-links.ts _site --known scripts/known-broken-links.txt
 
   reuse:
     name: REUSE compliance

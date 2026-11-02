@@ -4,15 +4,23 @@
 
 // Builds the whole site into _site/:
 //   /            landing page
-//   /latest/     docs of the checkout given as --oa (main)
-//   /vX.Y/       docs of the newest stable tag of each of the last 5 minor lines
-//   /versions.json  read by the version switcher at run time
+//   /latest/     docs of the newest release tag (what readers should use)
+//   /dev/        docs of the checkout given as --oa (main, not released yet)
+//   /vX.Y/       docs of the newest stable tag of each older minor line; the
+//                newest minor line redirects to /latest/
+//   /versions.json  read by the version switcher and the 404 page at run time
+//
+// Every version is its own build. The landing page and /latest/ must build;
+// a failing /dev/ or older version is reported and skipped, so a mistake in the
+// docs of main never keeps a release from being published.
 //
 // Usage: bun scripts/build.ts --oa <openartifact checkout> [--keep 5]
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
+import { siteOrigin } from '../.vitepress/env'
+import { redirectPage, redirectTree } from './redirect'
 import { pickReleases } from './versions'
 
 const { values } = parseArgs({
@@ -22,6 +30,8 @@ if (!values.oa) throw new Error('--oa <openartifact checkout> is required')
 
 const oa = resolve(values.oa)
 const out = resolve('_site')
+const origin = process.env.OA_SITE_ORIGIN ?? siteOrigin
+const siteRoot = `${(process.env.OA_SITE_BASE ?? '/').replace(/\/?$/, '/')}`
 
 function run(cmd: string[], env: Record<string, string> = {}, cwd?: string): string {
   const p = Bun.spawnSync(cmd, { env: { ...process.env, ...env }, cwd, stdout: 'pipe', stderr: 'inherit' })
@@ -33,42 +43,128 @@ function build(env: Record<string, string>): void {
   run(['bunx', '--bun', 'vitepress', 'build'], env)
 }
 
+const failures: { name: string; error: string }[] = []
+
+/** Builds one docs version; a failure is recorded and the half-written output removed. */
+function tryBuild(name: string, env: Record<string, string>): boolean {
+  console.log(`::group::build ${name}`)
+  try {
+    build(env)
+    return true
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e)
+    failures.push({ name, error })
+    rmSync(join(out, name), { recursive: true, force: true })
+    console.log(`::warning title=docs ${name} not published::${error}`)
+    return false
+  } finally {
+    console.log('::endgroup::')
+  }
+}
+
 rmSync(out, { recursive: true, force: true })
 
 const tags = run(['git', '-C', oa, 'tag', '--list', 'v*']).split('\n').filter(Boolean)
 const releases = pickReleases(tags, Number(values.keep))
 const sha = run(['git', '-C', oa, 'rev-parse', '--short=7', 'HEAD']).trim()
+const [newest, ...older] = releases
 
 console.log(`releases: ${releases.map((r) => `${r.minor}=${r.tag}`).join(' ') || 'none'}`)
 
-// Landing first: its build owns the root of _site, the docs builds add subdirectories.
-build({ OA_TARGET: 'landing', OA_SRC_DIR: oa })
-build({ OA_TARGET: 'docs', OA_VERSION: 'latest', OA_SRC_DIR: oa, OA_REF: 'main' })
-
 const scratch = mkdtempSync(join(tmpdir(), 'oa-docs-'))
+
+/** The tag's own tree: docs, installCommands.ts and every file the docs link to. */
+function extract(tag: string): string {
+  const dir = join(scratch, tag)
+  mkdirSync(dir)
+  const tar = Bun.spawnSync(['sh', '-c', `git -C "$OA" archive "$TAG" | tar -x -C "$DIR"`], {
+    env: { ...process.env, OA: oa, TAG: tag, DIR: dir },
+    stderr: 'inherit',
+  })
+  if (tar.exitCode !== 0) throw new Error(`git archive ${tag} failed`)
+  return dir
+}
+
+const versions: { name: string; label: string; minor?: string }[] = []
+
 try {
-  for (const r of releases) {
-    // The tag's own tree: docs, installCommands.ts and every file the docs link to.
-    const dir = join(scratch, r.tag)
-    mkdirSync(dir)
-    const tar = Bun.spawnSync(['sh', '-c', `git -C "$OA" archive "$TAG" | tar -x -C "$DIR"`], {
-      env: { ...process.env, OA: oa, TAG: r.tag, DIR: dir },
-      stderr: 'inherit',
+  const latestDir = newest ? extract(newest.tag) : oa
+  const latestEnv = { OA_LATEST: newest?.tag ?? '' }
+
+  // Landing first: its build owns the root of _site, the docs builds add subdirectories.
+  // It lists the formats of the release it links to.
+  build({ OA_TARGET: 'landing', OA_SRC_DIR: latestDir, ...latestEnv })
+
+  // Old tags are built with today's theme and sidebar: their pages may link to
+  // files that moved later, which must not block publishing.
+  if (newest) {
+    build({
+      OA_TARGET: 'docs',
+      OA_VERSION: 'latest',
+      OA_LABEL: newest.tag,
+      OA_SRC_DIR: latestDir,
+      OA_REF: newest.tag,
+      OA_LENIENT: '1',
+      ...latestEnv,
     })
-    if (tar.exitCode !== 0) throw new Error(`git archive ${r.tag} failed`)
-    // Old tags are built with today's theme and sidebar: their pages may link
-    // to files that moved later, which must not block publishing.
-    build({ OA_TARGET: 'docs', OA_VERSION: r.minor, OA_SRC_DIR: dir, OA_REF: r.tag, OA_LENIENT: '1' })
+    versions.push({ name: 'latest', label: `latest (${newest.tag})`, minor: newest.minor })
+  } else {
+    // No release yet: main is all there is.
+    build({ OA_TARGET: 'docs', OA_VERSION: 'latest', OA_LABEL: 'main', OA_SRC_DIR: oa, OA_REF: 'main' })
+    versions.push({ name: 'latest', label: `latest (main ${sha})` })
+  }
+
+  if (newest) {
+    const ok = tryBuild('dev', { OA_TARGET: 'docs', OA_VERSION: 'dev', OA_LABEL: 'dev', OA_SRC_DIR: oa, OA_REF: 'main', ...latestEnv })
+    if (ok) versions.push({ name: 'dev', label: `dev (main ${sha})` })
+  }
+
+  for (const r of older) {
+    const ok = tryBuild(r.minor, {
+      OA_TARGET: 'docs',
+      OA_VERSION: r.minor,
+      OA_SRC_DIR: extract(r.tag),
+      OA_REF: r.tag,
+      OA_LENIENT: '1',
+      ...latestEnv,
+    })
+    if (ok) versions.push({ name: r.minor, label: `${r.minor} (${r.tag.slice(1)})` })
   }
 } finally {
   rmSync(scratch, { recursive: true, force: true })
 }
 
-const versions = [
-  { name: 'latest', label: `latest (main ${sha})` },
-  ...releases.map((r) => ({ name: r.minor, label: `${r.minor} (${r.tag.slice(1)})` })),
-]
+// The newest minor line is served as /latest/: its old /vX.Y/ URLs redirect there page by page.
+if (newest) {
+  const n = redirectTree(origin, siteRoot, out, newest.minor, 'latest')
+  console.log(`${newest.minor}: ${n} redirects to /latest/`)
+}
+
+// When the development build failed, /dev/ sends readers to /latest/ instead of a 404.
+if (newest && !existsSync(join(out, 'dev'))) {
+  mkdirSync(join(out, 'dev'))
+  writeFileSync(join(out, 'dev', 'index.html'), redirectPage(`${siteRoot}latest/`))
+}
+
 writeFileSync(join(out, 'versions.json'), `${JSON.stringify(versions, null, 2)}\n`)
+
+// One sitemap for the pages worth indexing: the landing page and /latest/.
+const urls = (file: string): string[] =>
+  existsSync(file) ? [...readFileSync(file, 'utf8').matchAll(/<url>[\s\S]*?<\/url>/g)].map((m) => m[0]) : []
+const latestMap = join(out, 'latest', 'sitemap.xml')
+const entries = [...urls(join(out, 'sitemap.xml')), ...urls(latestMap)]
+rmSync(latestMap, { force: true })
+writeFileSync(
+  join(out, 'sitemap.xml'),
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries.join('')}</urlset>\n`,
+)
+writeFileSync(join(out, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${origin}${siteRoot}sitemap.xml\n`)
 // Served by Pages as-is: no Jekyll processing of _-prefixed files.
 writeFileSync(join(out, '.nojekyll'), '')
-console.log(`built ${versions.length} doc versions into ${out}`)
+
+console.log(`built ${versions.length} doc versions into ${out}: ${versions.map((v) => v.name).join(' ')}`)
+if (failures.length > 0) {
+  const text = failures.map((f) => `- docs ${f.name} was not published: ${f.error}`).join('\n')
+  console.log(text)
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Not published\n\n${text}\n`)
+}
