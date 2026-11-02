@@ -22,6 +22,7 @@ const groups: { text: string; dir: string; open?: boolean; items: Entry[] }[] = 
     items: [
       ['Overview', 'README'],
       ['Installation', 'getting-started/installation'],
+      ['Your first repository', 'getting-started/first-repository'],
       ['Configuration', 'getting-started/configuration'],
       ['Web UI', 'getting-started/web-ui'],
       ['Language', 'getting-started/language'],
@@ -77,6 +78,8 @@ const groups: { text: string; dir: string; open?: boolean; items: Entry[] }[] = 
       ['RBAC', 'security/rbac'],
       ['Projects', 'security/projects'],
       ['Scanning', 'security/scanning'],
+      ['Scanner setup', 'security/scanner-setup'],
+      ['Local OSV mirror', 'security/osv-mirror'],
       ['Security findings', 'security/findings'],
       ['KEV and EPSS signals', 'security/exploit-signals'],
       ['SBOM and VEX', 'security/sbom'],
@@ -152,8 +155,12 @@ const groups: { text: string; dir: string; open?: boolean; items: Entry[] }[] = 
     items: [
       ['Development guide', 'development/README'],
       ['Architecture', 'development/architecture'],
+      ['Adding a format', 'development/adding-a-format'],
       ['Testing', 'development/testing'],
+      ['Fuzzing', 'development/fuzzing'],
+      ['CI and releases', 'development/ci-and-releases'],
       ['Translations', 'development/translations'],
+      ['Documentation style', 'development/docs-style'],
     ],
   },
 ]
