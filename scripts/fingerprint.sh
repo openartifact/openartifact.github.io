@@ -17,6 +17,8 @@
 #
 # Both forms print the same value for the same state of the repository.
 set -euo pipefail
+# Tag order must not depend on the locale of whoever runs this.
+export LC_ALL=C
 
 repo=openartifact/openartifact
 checkout=${1:-}
