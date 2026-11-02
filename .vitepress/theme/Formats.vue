@@ -7,6 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useData } from 'vitepress'
+import { appLink } from '../apps'
 import type { OaTheme } from './oa'
 
 // Names and pages come from the format matrix of the docs this page links to.
@@ -21,7 +22,7 @@ const oa = computed(() => theme.value.oa as OaTheme)
       <p>Each one is served on the URL its client expects.</p>
       <ul>
         <li v-for="f in oa.formats" :key="f.name">
-          <a :href="`${oa.siteRoot}latest/formats/${f.page}`">{{ f.name }}</a>
+          <a v-bind="appLink(oa, `${oa.siteRoot}latest/formats/${f.page}`)">{{ f.name }}</a>
         </li>
       </ul>
     </div>

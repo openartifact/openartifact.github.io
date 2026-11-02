@@ -14,6 +14,10 @@
 //   --known     broken targets of released docs that cannot be fixed any more (see the file);
 //               they are not reported, anything else breaks the run
 //   --external  first path segments served by other sites (not part of _site)
+//
+// It also checks that every link from one VitePress app to another (landing page,
+// /latest/, /dev/, /vX.Y/) carries a `target` attribute: without it the app's client
+// router handles the click and shows its own 404 page (.vitepress/apps.ts).
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, posix, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
@@ -44,22 +48,46 @@ export function urlOf(file: string): string {
 export interface Page {
   url: string
   refs: string[]
+  /** Same-site anchors that point into another app and have no `target`; only for VitePress pages */
+  untargeted: string[]
   ids: Set<string>
+}
+
+const APP = /^\/(latest|dev|v\d+\.\d+)\//
+
+/** The VitePress app that serves a URL path; the root page is the landing app, other paths belong to no app. */
+export function appOf(path: string): string {
+  return APP.exec(path)?.[1] ?? (path === '/' ? 'landing' : '')
+}
+
+/** Router links only: a path-absolute href that is not a file (the router ignores those). */
+function routed(href: string): boolean {
+  if (!href.startsWith('/') || href.startsWith('//')) return false
+  const last = href.replace(/[?#].*$/, '').split('/').pop() ?? ''
+  return !/\.(?!html$)[a-z0-9]+$/i.test(last)
 }
 
 export function parsePage(url: string, html: string): Page {
   const body = html.replace(/(<script\b[^>]*>)[\s\S]*?(<\/script>)/gi, '$1$2')
   const refs: string[] = []
+  const untargeted: string[] = []
+  // Redirect pages and the like run no router; the VitePress mount point marks the others.
+  const vitepress = /\sid="app"/.test(body)
+  const own = appOf(url.replace(/\/404$/, '/'))
   for (const tag of body.matchAll(TAG)) {
     const m = ATTR.exec(tag[0])
     const ref = m?.[1] ?? m?.[2]
+    if (vitepress && /^<a\b/i.test(tag[0]) && ref !== undefined && !/\starget=/i.test(tag[0])) {
+      const href = unescapeHtml(ref)
+      if (routed(href) && appOf(href.replace(/[?#].*$/, '')) !== own) untargeted.push(href)
+    }
     if (ref !== undefined && !SKIP.test(ref)) refs.push(unescapeHtml(ref))
     // A fragment-only link points into the page itself.
     if (ref?.startsWith('#') && ref.length > 1) refs.push(unescapeHtml(ref))
   }
   const ids = new Set<string>()
   for (const m of body.matchAll(ID)) ids.add(unescapeHtml(m[1] ?? m[2]))
-  return { url, refs, ids }
+  return { url, refs, untargeted, ids }
 }
 
 function walk(dir: string, rel = ''): string[] {
@@ -102,6 +130,10 @@ export function checkSite(site: string, external: string[] = [], known = new Set
     const version = /^\/(latest|dev|v\d+\.\d+)\//.test(page.url) ? page.url.split('/')[1] : 'landing'
     const problems = byVersion.get(version) ?? []
     byVersion.set(version, problems)
+
+    for (const href of new Set(page.untargeted)) {
+      problems.push({ page: page.url, ref: href, target: href, why: 'link into another app without target="_self": the router shows a 404' })
+    }
 
     for (const ref of page.refs) {
       refs++

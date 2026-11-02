@@ -18,11 +18,9 @@ hero:
     - theme: brand
       text: Get started
       link: /latest/getting-started/installation
-      target: _self
     - theme: alt
       text: Documentation
       link: /latest/
-      target: _self
     - theme: alt
       text: GitHub
       link: https://github.com/openartifact/openartifact

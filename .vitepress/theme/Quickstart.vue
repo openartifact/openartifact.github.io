@@ -7,6 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useData } from 'vitepress'
+import { appLink } from '../apps'
 import type { OaTheme } from './oa'
 
 // The release number and the commands come from the build, so the page names the
@@ -53,7 +54,7 @@ async function copy() {
       <p>
         Then open <code>http://localhost:8080</code> and sign in as <code>admin</code>; the first password is in the
         server log. Kubernetes, binaries and all options are in the
-        <a :href="`${oa.siteRoot}latest/getting-started/installation`">installation guide</a>.
+        <a v-bind="appLink(oa, `${oa.siteRoot}latest/getting-started/installation`)">installation guide</a>.
       </p>
     </div>
   </section>

@@ -7,6 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useData } from 'vitepress'
+import { appLink } from '../apps'
 import type { OaTheme, VersionEntry } from './oa'
 
 // Pages in a version that does not have them, and versions that were retired,
@@ -71,10 +72,10 @@ onMounted(async () => {
       the documentation.
     </p>
     <ul>
-      <li><a :href="searchHref">Search the latest docs for “{{ query || 'artifact' }}”</a></li>
-      <li><a :href="`${oa.siteRoot}latest/`">Documentation of the latest release</a></li>
-      <li><a :href="`${oa.siteRoot}dev/`">Development docs (unreleased)</a></li>
-      <li><a :href="oa.siteRoot">OpenArtifact home</a></li>
+      <li><a v-bind="appLink(oa, searchHref)">Search the latest docs for “{{ query || 'artifact' }}”</a></li>
+      <li><a v-bind="appLink(oa, `${oa.siteRoot}latest/`)">Documentation of the latest release</a></li>
+      <li><a v-bind="appLink(oa, `${oa.siteRoot}dev/`)">Development docs (unreleased)</a></li>
+      <li><a v-bind="appLink(oa, oa.siteRoot)">OpenArtifact home</a></li>
     </ul>
   </div>
 </template>

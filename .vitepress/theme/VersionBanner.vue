@@ -7,6 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useData } from 'vitepress'
+import { appLink } from '../apps'
 import { samePage, type OaTheme } from './oa'
 
 // Docs of main describe code that is not released; docs of an older minor line
@@ -33,7 +34,7 @@ async function toLatest(e: MouseEvent) {
       <strong>Older docs.</strong>
       This is the documentation of {{ oa.label }}, not the newest release.
     </p>
-    <a :href="`${oa.siteRoot}latest/`" @click="toLatest">Read the {{ latest }} docs</a>
+    <a v-bind="appLink(oa, `${oa.siteRoot}latest/`)" @click="toLatest">Read the {{ latest }} docs</a>
   </aside>
 </template>
 
