@@ -1,0 +1,5 @@
+# SPDX-FileCopyrightText: The OpenArtifact Authors
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Written by openartifact/openartifact (docs-site-trigger.yml); its content only makes the commit unique.
+source: openartifact/openartifact@a3b9d3d2a3d62579d48ececa5f890b42265bad2d (main)
