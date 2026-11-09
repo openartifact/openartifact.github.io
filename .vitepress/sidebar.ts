@@ -84,6 +84,7 @@ const groups: { text: string; dir: string; open?: boolean; items: Entry[] }[] = 
       ['Security findings', 'security/findings'],
       ['KEV and EPSS signals', 'security/exploit-signals'],
       ['SBOM and VEX', 'security/sbom'],
+      ['Vendor VEX feeds', 'security/vex-feeds'],
       ['Dependency-Track', 'security/dependency-track'],
       ['License metadata', 'security/licenses'],
       ['Signing', 'security/signing'],
