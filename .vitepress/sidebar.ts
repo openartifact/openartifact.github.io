@@ -87,6 +87,7 @@ const groups: { text: string; dir: string; open?: boolean; items: Entry[] }[] = 
       ['Dependency-Track', 'security/dependency-track'],
       ['License metadata', 'security/licenses'],
       ['Signing', 'security/signing'],
+      ['Image attestations', 'security/attestations'],
       ['Threat model', 'security/threat-model'],
     ],
   },
@@ -116,6 +117,9 @@ const groups: { text: string; dir: string; open?: boolean; items: Entry[] }[] = 
     items: [
       ['CLI', 'integrations/cli'],
       ['CI integration', 'integrations/ci'],
+      ['Tekton catalog', 'integrations/tekton'],
+      ['Konflux', 'integrations/konflux'],
+      ['Konflux image-controller', 'integrations/konflux-image-controller'],
       ['Declarative configuration', 'integrations/declarative'],
       ['MCP server', 'integrations/mcp'],
       ['REST API', 'integrations/api'],
