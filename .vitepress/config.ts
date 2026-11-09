@@ -147,6 +147,7 @@ export default defineConfig({
       ref: env.ref,
       // The landing page lists the formats of the docs it links to.
       formats: isLanding ? listFormats(docsDir) : [],
+      demo: isLanding && env.demo,
     },
   },
   // Links into another app of the site must not go through this app's router (apps.ts).

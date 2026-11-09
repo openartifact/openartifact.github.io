@@ -16,6 +16,7 @@ The documentation text is **not** in this repository. It lives in [`docs/`](http
 | `/latest/` | Docs of the newest release tag of openartifact/openartifact. This is what readers should use |
 | `/dev/` | Docs of `main`, not released yet; every page carries an "Unreleased docs" banner and is not indexed |
 | `/vX.Y/` | Docs of the newest stable tag of each older minor line, among the last 5 minor lines. `/vX.Y/` of the newest minor line redirects to `/latest/`; a minor line that is no longer published redirects to the oldest one that is |
+| `/demo/` | The web UI of the latest release in demo mode (`bun run build:demo`: an in-browser backend on sample data, no server), embedded in the landing page. Releases without a demo build keep the screenshots |
 | `/versions.json` | List read by the version switcher and the 404 page at run time, so old versions offer new releases |
 | `/sitemap.xml`, `/robots.txt` | Landing page and `/latest/` only; other versions are `noindex` |
 | `/helm-charts/` | Not built here: the Helm chart repository (openartifact/helm-charts, its own Pages site) |

@@ -13,6 +13,8 @@ export interface OaTheme {
   /** Release served as latest: v0.16.1 */
   latest: string
   ref: string
+  /** The web UI demo is served at /demo/ (landing page only) */
+  demo: boolean
   formats: { id: string; name: string; page: string; types: string[] }[]
 }
 
