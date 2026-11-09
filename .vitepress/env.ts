@@ -14,6 +14,7 @@
 //   OA_REF        git ref used in GitHub links           (default main)
 //   OA_SITE_BASE  URL path the site root is served at    (default /)
 //   OA_LENIENT    1 tolerates dead links (old releases built with today's theme)
+//   OA_DEMO       1 when the web UI demo was built into /demo/ (landing page)
 //   OA_OUT_DIR    output directory                       (default _site/<version> or _site)
 import { resolve } from 'node:path'
 
@@ -32,6 +33,7 @@ export const env = {
   siteBase,
   lenient: process.env.OA_LENIENT === '1',
   outDir: process.env.OA_OUT_DIR,
+  demo: process.env.OA_DEMO === '1',
 }
 
 export const isLanding = env.target === 'landing'

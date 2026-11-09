@@ -8,8 +8,8 @@ titleTemplate: Self-hosted artifact repository
 
 hero:
   name: OpenArtifact
-  text: Self-hosted artifact repository for many package formats
-  tagline: Run one Go binary with PostgreSQL and serve every package format your teams use, with access control, SSO and security scanning built in.
+  text: One artifact repository for every package format
+  tagline: A single Go binary on PostgreSQL. Host, proxy and group packages with the clients your teams already use, with SSO, access control and supply-chain scanning built in.
   image:
     light: /brand/openartifact-mark-color.svg
     dark: /brand/openartifact-mark-color-dark.svg
@@ -26,16 +26,16 @@ hero:
       link: https://github.com/openartifact/openartifact
 
 features:
-  - title: Native package formats
-    details: Publish and install with the tools you already use. Every format is served on the URL its client expects, listed below.
-  - title: Hosted, proxy and group
-    details: Host your own packages, mirror upstream registries and keep serving cached copies when they are down, merge repositories behind one URL, and replicate between sites.
+  - title: Native clients
+    details: npm, pip, mvn, docker, helm, cargo and the rest publish and install against the URL they expect.
+  - title: Hosted, proxy, group
+    details: Publish your own packages, cache upstream registries and keep serving when they are down, merge both behind one URL, replicate between sites.
   - title: Access control
-    details: Give users, groups and projects the access they need with permission targets and API tokens. Sign in with OIDC or SAML.
-  - title: Supply chain security
-    details: Scan every upload for vulnerabilities, secrets and licenses, block flagged artifacts with quarantine, and export CycloneDX or SPDX SBOMs, signed attestations and Dependency-Track pushes.
-  - title: Operable
-    details: Store blobs on a filesystem, S3, GCS, Azure or an OCI registry, move cold data between tiers, and recover from backups or to a point in time. Prometheus metrics, webhooks and an audit log are included.
+    details: Projects, groups and permission targets. OIDC and SAML sign-in, scoped API tokens, public repositories for anonymous reads.
+  - title: Supply chain
+    details: Vulnerability, secret and license scans on upload, quarantine, CycloneDX and SPDX SBOMs, VEX and signed attestations.
+  - title: Operations
+    details: Filesystem, S3, GCS, Azure or OCI storage with tiering, backups and point-in-time recovery. Prometheus metrics, webhooks, audit log.
   - title: Free software
-    details: AGPL-3.0-or-later and REUSE compliant. Automate with the REST API, the oa CLI (with Nexus and Artifactory import) and an optional MCP server.
+    details: AGPL-3.0-or-later. REST API, the oa CLI with Nexus and Artifactory import, and an MCP server.
 ---

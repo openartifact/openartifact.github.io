@@ -13,6 +13,8 @@ import SearchHandoff from './SearchHandoff.vue'
 import Screenshots from './Screenshots.vue'
 import VersionBanner from './VersionBanner.vue'
 import VersionSwitcher from './VersionSwitcher.vue'
+import '@fontsource-variable/inter'
+import '@fontsource-variable/jetbrains-mono'
 import './style.css'
 
 export default {

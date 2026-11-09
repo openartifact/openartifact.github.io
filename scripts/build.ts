@@ -15,7 +15,7 @@
 // docs of main never keeps a release from being published.
 //
 // Usage: bun scripts/build.ts --oa <openartifact checkout> [--keep 5]
-import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
@@ -85,15 +85,43 @@ function extract(tag: string): string {
   return dir
 }
 
+/**
+ * Builds the web UI of a checkout in demo mode (in-browser fixture backend, no server) for /demo/.
+ * Releases older than the demo mode have no build:demo script; a failure is reported and the
+ * landing page keeps its screenshots.
+ */
+function buildDemo(srcDir: string): string | undefined {
+  const web = join(srcDir, 'web')
+  const pkg = join(web, 'package.json')
+  if (!existsSync(pkg) || !JSON.parse(readFileSync(pkg, 'utf8')).scripts?.['build:demo']) return undefined
+  console.log('::group::build demo')
+  try {
+    run(['bun', 'install', '--frozen-lockfile'], {}, web)
+    run(['bun', 'run', 'build:demo'], { OA_DEMO_BASE: `${siteRoot}demo/` }, web)
+    return join(web, 'dist-demo')
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e)
+    failures.push({ name: 'demo', error })
+    console.log(`::warning title=demo not published::${error}`)
+    return undefined
+  } finally {
+    console.log('::endgroup::')
+  }
+}
+
 const versions: { name: string; label: string; minor?: string }[] = []
 
 try {
   const latestDir = newest ? extract(newest.tag) : oa
   const latestEnv = { OA_LATEST: newest?.tag ?? '' }
 
+  // The web UI demo of the release; the landing page embeds it when it built.
+  const demo = buildDemo(latestDir)
+
   // Landing first: its build owns the root of _site, the docs builds add subdirectories.
   // It lists the formats of the release it links to.
-  build({ OA_TARGET: 'landing', OA_SRC_DIR: latestDir, ...latestEnv })
+  build({ OA_TARGET: 'landing', OA_SRC_DIR: latestDir, OA_DEMO: demo ? '1' : '', ...latestEnv })
+  if (demo) cpSync(demo, join(out, 'demo'), { recursive: true })
 
   // Old tags are built with today's theme and sidebar: their pages may link to
   // files that moved later, which must not block publishing.
@@ -164,7 +192,7 @@ writeFileSync(join(out, '.nojekyll'), '')
 
 console.log(`built ${versions.length} doc versions into ${out}: ${versions.map((v) => v.name).join(' ')}`)
 if (failures.length > 0) {
-  const text = failures.map((f) => `- docs ${f.name} was not published: ${f.error}`).join('\n')
+  const text = failures.map((f) => `- ${f.name === 'demo' ? 'the web UI demo' : `docs ${f.name}`} was not published: ${f.error}`).join('\n')
   console.log(text)
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Not published\n\n${text}\n`)
 }

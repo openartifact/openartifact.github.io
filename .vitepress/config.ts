@@ -104,6 +104,9 @@ export default defineConfig({
       // The docs render the same client snippets as the web UI.
       alias: [
         { find: '@oa/install', replacement: join(env.srcDir, 'web/src/lib/installCommands.ts') },
+        // The landing page shows the web UI's format icons and colours.
+        { find: '@oa/formats', replacement: join(env.srcDir, 'web/src/lib/formats.ts') },
+        { find: /^simple-icons$/, replacement: resolve('node_modules/simple-icons') },
         // The markdown lives in another checkout, outside this repo's node_modules.
         { find: /^vue(\/.*)?$/, replacement: `${resolve('node_modules/vue')}$1` },
       ],
@@ -144,6 +147,7 @@ export default defineConfig({
       ref: env.ref,
       // The landing page lists the formats of the docs it links to.
       formats: isLanding ? listFormats(docsDir) : [],
+      demo: isLanding && env.demo,
     },
   },
   // Links into another app of the site must not go through this app's router (apps.ts).
