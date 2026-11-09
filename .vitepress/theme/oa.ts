@@ -13,7 +13,7 @@ export interface OaTheme {
   /** Release served as latest: v0.16.1 */
   latest: string
   ref: string
-  formats: { name: string; page: string }[]
+  formats: { name: string; page: string; types: string[] }[]
 }
 
 /** One entry of /versions.json. */

@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-/* Colours and type from https://github.com/openartifact/brand (tokens.css). */
+/* Colours and type from https://github.com/openartifact/brand (tokens.css); the fonts are bundled (theme/index.ts). */
 
 :root {
-  --vp-font-family-base: 'Inter', system-ui, sans-serif;
-  --vp-font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --vp-font-family-base: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --vp-font-family-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
 
   --vp-c-bg: #f9fafb;
   --vp-c-bg-alt: #ffffff;
@@ -81,9 +81,47 @@
   }
 }
 
-/* Landing sections below the hero line up with the hero and the feature cards. */
+/* Landing page: the hero, then sections with one rhythm and a divider between them. */
+.VPHome .VPHero .text {
+  max-width: 640px;
+  letter-spacing: -0.02em;
+}
+
+.VPHome .VPHero .tagline {
+  max-width: 600px;
+}
+
+/* The quick start above already ends with a section's bottom padding. */
+.VPHome .VPFeatures {
+  padding-top: 0;
+  padding-bottom: 56px;
+}
+
+.VPHome .VPFeature {
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-alt);
+  transition: border-color 0.15s;
+}
+
+.VPHome .VPFeature:hover {
+  border-color: var(--vp-c-brand-1);
+}
+
+.VPHome .VPFeature .title {
+  font-size: 15px;
+}
+
+.VPHome .VPFeature .details {
+  line-height: 22px;
+}
+
 .oa-section {
-  padding: 16px 24px;
+  padding: 40px 24px;
+}
+
+.oa-section + .oa-section,
+.VPFeatures + .oa-section {
+  border-top: 1px solid var(--vp-c-divider);
 }
 
 .oa-section > .oa-inner {
@@ -97,17 +135,23 @@
   padding: 0;
   font-size: 22px;
   font-weight: 600;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
+}
+
+.oa-section .oa-lead {
+  margin: 4px 0 20px;
+  color: var(--vp-c-text-2);
+  font-size: 14px;
 }
 
 @media (min-width: 640px) {
   .oa-section {
-    padding: 16px 48px;
+    padding: 48px 48px;
   }
 }
 
 @media (min-width: 960px) {
   .oa-section {
-    padding: 16px 64px;
+    padding: 56px 64px;
   }
 }

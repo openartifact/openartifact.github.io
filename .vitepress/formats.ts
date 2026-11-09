@@ -10,11 +10,13 @@ export interface Format {
   name: string
   /** Page under docs/formats/ without extension: pacman */
   page: string
+  /** Repository types the format supports, as the matrix lists them: hosted, proxy, group */
+  types: string[]
 }
 
 /**
  * The formats of a docs version, read from the matrix in docs/formats/README.md
- * (`| Name | `id` | ... | [page](page.md) |`), so the landing page never lists
+ * (`| Name | `id` | url | types | ... | [page](page.md) |`), so the landing page never lists
  * fewer or more formats than the documentation it links to.
  */
 export function listFormats(docsDir: string): Format[] {
@@ -30,7 +32,7 @@ export function parseFormatMatrix(markdown: string): Format[] {
     // ['', name, `id`, url, types, upload, [page](page.md), '']
     if (cells.length < 8 || !/^`[a-z0-9-]+`$/.test(cells[2])) continue
     const page = /\]\(([a-z0-9-]+)\.md\)/.exec(cells[cells.length - 2])
-    if (page) out.push({ name: cells[1], page: page[1] })
+    if (page) out.push({ name: cells[1], page: page[1], types: cells[4].split(',').map((t) => t.trim()).filter(Boolean) })
   }
   return out
 }

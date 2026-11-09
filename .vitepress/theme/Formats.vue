@@ -10,7 +10,7 @@ import { useData } from 'vitepress'
 import { appLink } from '../apps'
 import type { OaTheme } from './oa'
 
-// Names and pages come from the format matrix of the docs this page links to.
+// Names, pages and repository types come from the format matrix of the docs this page links to.
 const { theme } = useData()
 const oa = computed(() => theme.value.oa as OaTheme)
 </script>
@@ -18,11 +18,14 @@ const oa = computed(() => theme.value.oa as OaTheme)
 <template>
   <section v-if="oa.formats.length" class="oa-section" aria-labelledby="formats-title">
     <div class="oa-inner">
-      <h2 id="formats-title">Package formats</h2>
-      <p>Each one is served on the URL its client expects.</p>
+      <h2 id="formats-title">{{ oa.formats.length }} package formats</h2>
+      <p class="oa-lead">Each one is served on the URL its client expects.</p>
       <ul>
         <li v-for="f in oa.formats" :key="f.name">
-          <a v-bind="appLink(oa, `${oa.siteRoot}latest/formats/${f.page}`)">{{ f.name }}</a>
+          <a v-bind="appLink(oa, `${oa.siteRoot}latest/formats/${f.page}`)">
+            <span class="name">{{ f.name }}</span>
+            <span class="types">{{ f.types.join(' · ') }}</span>
+          </a>
         </li>
       </ul>
     </div>
@@ -30,15 +33,9 @@ const oa = computed(() => theme.value.oa as OaTheme)
 </template>
 
 <style scoped>
-p {
-  margin: 4px 0 12px;
-  color: var(--vp-c-text-2);
-  font-size: 14px;
-}
-
 ul {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 8px;
   margin: 0;
   padding: 0;
@@ -46,18 +43,34 @@ ul {
 }
 
 a {
-  display: block;
-  padding: 4px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  padding: 10px 14px;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 16px;
-  background: var(--vp-c-bg-soft);
-  color: var(--vp-c-text-1);
-  font-size: 14px;
+  border-radius: 8px;
+  background: var(--vp-c-bg-alt);
   text-decoration: none;
+  transition: border-color 0.15s;
 }
 
 a:hover {
   border-color: var(--vp-c-brand-1);
+}
+
+.name {
+  color: var(--vp-c-text-1);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+a:hover .name {
   color: var(--vp-c-brand-1);
+}
+
+.types {
+  color: var(--vp-c-text-2);
+  font-size: 12px;
 }
 </style>

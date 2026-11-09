@@ -44,16 +44,22 @@ async function copy() {
       <div class="head">
         <h2 id="quickstart-title">Run it in a minute</h2>
         <a v-if="tag" class="release" :href="`https://github.com/openartifact/openartifact/releases/tag/${tag}`">
-          Latest release {{ tag }}
+          {{ tag }} release notes
         </a>
       </div>
+      <p class="oa-lead">Docker Compose with PostgreSQL, from the latest release.</p>
       <div class="code">
-        <button type="button" class="copy" @click="copy">{{ copied ? 'Copied' : 'Copy' }}</button>
+        <div class="bar">
+          <span class="lang">sh</span>
+          <button type="button" class="copy" :aria-label="copied ? 'Copied' : 'Copy commands'" @click="copy">
+            {{ copied ? 'Copied' : 'Copy' }}
+          </button>
+        </div>
         <pre><code>{{ commands }}</code></pre>
       </div>
-      <p>
+      <p class="after">
         Then open <code>http://localhost:8080</code> and sign in as <code>admin</code>; the first password is in the
-        server log. Kubernetes, binaries and all options are in the
+        server log. Kubernetes, binaries and every option are in the
         <a v-bind="appLink(oa, `${oa.siteRoot}latest/getting-started/installation`)">installation guide</a>.
       </p>
     </div>
@@ -75,18 +81,33 @@ async function copy() {
 }
 
 .code {
-  margin: 12px 0;
+  margin: 0 0 12px;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 8px;
-  background: var(--vp-c-bg-soft);
+  border-radius: 10px;
+  background: var(--vp-code-block-bg);
+  overflow: hidden;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 6px 16px;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.lang {
+  color: var(--vp-c-text-2);
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
 }
 
 pre {
   margin: 0;
-  padding: 4px 16px 16px;
+  padding: 14px 16px 16px;
   overflow-x: auto;
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 code {
@@ -94,8 +115,6 @@ code {
 }
 
 .copy {
-  display: block;
-  margin: 8px 8px 0 auto;
   padding: 2px 10px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 6px;
@@ -104,20 +123,21 @@ code {
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
+  transition: border-color 0.15s;
 }
 
 .copy:hover {
   border-color: var(--vp-c-brand-1);
 }
 
-p {
+.after {
   margin: 0;
   color: var(--vp-c-text-2);
   font-size: 14px;
   line-height: 24px;
 }
 
-p code {
+.after code {
   font-size: 13px;
 }
 </style>
