@@ -9,6 +9,8 @@ import { computed } from 'vue'
 import { useData } from 'vitepress'
 import { appLink } from '../apps'
 import type { OaTheme } from './oa'
+// The web UI's brand icons and theme colours (web/src/lib/formats.ts of the checkout).
+import { formatIcon, formatIconEvenOdd, formatThemeColors, formatViewBox } from '@oa/formats'
 
 // Names, pages and repository types come from the format matrix of the docs this page links to.
 const { theme } = useData()
@@ -23,8 +25,19 @@ const oa = computed(() => theme.value.oa as OaTheme)
       <ul>
         <li v-for="f in oa.formats" :key="f.name">
           <a v-bind="appLink(oa, `${oa.siteRoot}latest/formats/${f.page}`)">
-            <span class="name">{{ f.name }}</span>
-            <span class="types">{{ f.types.join(' · ') }}</span>
+            <svg
+              v-if="formatIcon(f.id)"
+              class="icon"
+              :viewBox="formatViewBox(f.id)"
+              :style="{ '--fmt': formatThemeColors(f.id).light, '--fmt-dark': formatThemeColors(f.id).dark }"
+              aria-hidden="true"
+            >
+              <path :d="formatIcon(f.id)" fill="currentColor" :fill-rule="formatIconEvenOdd(f.id) ? 'evenodd' : undefined" />
+            </svg>
+            <span class="text">
+              <span class="name">{{ f.name }}</span>
+              <span class="types">{{ f.types.join(' · ') }}</span>
+            </span>
           </a>
         </li>
       </ul>
@@ -44,8 +57,8 @@ ul {
 
 a {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 12px;
   height: 100%;
   padding: 10px 14px;
   border: 1px solid var(--vp-c-divider);
@@ -57,6 +70,24 @@ a {
 
 a:hover {
   border-color: var(--vp-c-brand-1);
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  color: var(--fmt);
+}
+
+.dark .icon {
+  color: var(--fmt-dark);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .name {

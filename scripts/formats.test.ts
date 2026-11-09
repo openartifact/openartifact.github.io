@@ -14,7 +14,7 @@ test('names, pages and repository types come from the matrix rows only', () => {
     '| not a format | text | a | b | c | d |',
   ].join('\n')
   expect(parseFormatMatrix(md)).toEqual([
-    { name: 'Arch Linux (pacman)', page: 'pacman', types: ['hosted'] },
-    { name: 'sbt', page: 'ivy-sbt', types: ['hosted', 'proxy', 'group'] },
+    { id: 'pacman', name: 'Arch Linux (pacman)', page: 'pacman', types: ['hosted'] },
+    { id: 'sbt', name: 'sbt', page: 'ivy-sbt', types: ['hosted', 'proxy', 'group'] },
   ])
 })

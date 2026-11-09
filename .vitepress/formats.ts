@@ -6,6 +6,8 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 export interface Format {
+  /** Format id: pacman */
+  id: string
   /** Name as the format matrix writes it: "Arch Linux (pacman)" */
   name: string
   /** Page under docs/formats/ without extension: pacman */
@@ -32,7 +34,7 @@ export function parseFormatMatrix(markdown: string): Format[] {
     // ['', name, `id`, url, types, upload, [page](page.md), '']
     if (cells.length < 8 || !/^`[a-z0-9-]+`$/.test(cells[2])) continue
     const page = /\]\(([a-z0-9-]+)\.md\)/.exec(cells[cells.length - 2])
-    if (page) out.push({ name: cells[1], page: page[1], types: cells[4].split(',').map((t) => t.trim()).filter(Boolean) })
+    if (page) out.push({ id: cells[2].slice(1, -1), name: cells[1], page: page[1], types: cells[4].split(',').map((t) => t.trim()).filter(Boolean) })
   }
   return out
 }
